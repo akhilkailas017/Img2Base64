@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to Base64 Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: monospace;
+            background-color: #f4f4f4;
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        h2, h3 {
+            margin-bottom: 10px;
+        }
+        input, textarea, button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background: #f4f4f4;
+        }
+        button {
+            border: none;
+            background: #333;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #555;
+        }
+        img {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        #downloadImageBtn {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Image to Base64 Converter</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="convertToBase64()">Convert</button>
+    <textarea id="base64Output" rows="4" placeholder="Base64 will appear here..."></textarea>
+    <button onclick="copyBase64()">Copy Base64</button>
+    <button onclick="downloadBase64()">Download as .txt</button>
+
+    <h3>Paste Base64 or Upload .txt File to Preview</h3>
+    <input type="file" id="textFileInput" accept=".txt">
+    <button onclick="loadFromTextFile()">Load from .txt</button>
+    <textarea id="base64Input" rows="4" placeholder="Paste Base64 here..."></textarea>
+    <button onclick="previewImage()">Preview Image</button>
+    <img id="previewImage" style="display: none;">
+    <button id="downloadImageBtn" onclick="downloadImage()">Download Original Image</button>
+
+    <script>
+        function convertToBase64() {
+            const file = document.getElementById('imageInput').files[0];
+            if (!file) return alert('Please select an image.');
+            
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+                document.getElementById('base64Output').value = reader.result;
+            };
+        }
+
+        function copyBase64() {
+            const output = document.getElementById('base64Output');
+            if (!navigator.clipboard) {
+                // Fallback for iOS & older devices
+                output.select();
+                document.execCommand('copy');
+            } else {
+                navigator.clipboard.writeText(output.value);
+            }
+            alert('Base64 copied!');
+        }
+
+        function downloadBase64() {
+            const base64Data = document.getElementById('base64Output').value;
+            if (!base64Data) return alert('No Base64 data to download.');
+            
+            const blob = new Blob([base64Data], { type: "text/plain" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "image_base64.txt";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function loadFromTextFile() {
+            const file = document.getElementById('textFileInput').files[0];
+            if (!file) return alert('Please select a .txt file.');
+            
+            const reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload = function () {
+                document.getElementById('base64Input').value = reader.result;
+            };
+        }
+
+        function previewImage() {
+            const base64Data = document.getElementById('base64Input').value.trim();
+            if (!base64Data.startsWith('data:image')) return alert('Invalid Base64 Image.');
+            
+            const img = document.getElementById('previewImage');
+            img.src = base64Data;
+            img.style.display = 'block';
+
+            document.getElementById('downloadImageBtn').style.display = 'inline-block';
+        }
+
+        function downloadImage() {
+            const base64Data = document.getElementById('previewImage').src;
+            if (!base64Data.startsWith('data:image')) return alert('No valid image to download.');
+
+            const link = document.createElement("a");
+            link.href = base64Data;
+            link.download = "downloaded_image.png";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+
+</body>
+</html>
